@@ -1,9 +1,10 @@
-const int buttonPin = 8;  // + баттон
-const int downbuttonPin = 9;    // - баттон
+const int BankUpPin = 10;  // + баттон
+const int BankDimPin = 2;    // - баттон
 int i = 0; //запись в 76
 int check = 0; //защита от лишнего нажатия
-int buttonState = 0;  // +1
-int downstate = 0; //-1
+int BankUpState = 0;  // +1
+int BankDownState = 0; //-1
+int bank = 0;
 
 //запись в 76
 int clockPin = 5;
@@ -11,8 +12,8 @@ int dataPin = 7;
 int latchPin = 6;
 void setup() {
 
-  pinMode(buttonPin, INPUT);
-  pinMode(downPin, INPUT);
+  pinMode(BankUpPin, INPUT);
+  pinMode(BankDimPin, INPUT);
   Serial.begin(9600);
 
   pinMode(latchPin, OUTPUT);
@@ -21,35 +22,40 @@ void setup() {
 
 }
 
-void loop() {
-  buttonState = digitalRead(buttonPin);
-  downstate = digitalRead(downPin);
-
-   if (buttonState == HIGH && check == 0) {
-    check++;
-    if (i>255){i=0;}
-    delay(100); i++; 
-    Serial.println("+"); 
-
-  } 
-  if (downstate == HIGH && check == 0) {
-    check++; 
-    if (i<0){i=256;}
-    Serial.println("-");  
-    delay(100); i--;
-  } 
-
-  if (buttonState == LOW && downstate == LOW) //переделать, условие вызывает нестабильность
-  {
-    buttonState = digitalRead(buttonPin);
-    downstate = digitalRead(downPin);
-    check= 0; //приведение системы в 0
-    
-    //вывод
+void doit(int a)
+{
     digitalWrite(latchPin, LOW);
     shiftOut(dataPin, clockPin,LSBFIRST, i);
     digitalWrite(latchPin, HIGH);
-    Serial.println(i); delay(100);
+    Serial.print("bank #"); Serial.print(bank); Serial.print(" value "); Serial.println(i); delay(100);
+}
+
+void loop() {
+  BankUpState = digitalRead(BankUpPin);
+  BankDownState = digitalRead(BankDimPin);
+
+   if (BankUpState == HIGH && check == 0) {
+    check++;
+    if (bank>2){bank=-1;}
+    delay(100); bank++; 
+    Serial.println("+"); 
+
+  } 
+  if (BankDownState == HIGH && check == 0) {
+    check++; 
+    if (bank<1){bank=4;}
+    Serial.println("-");  
+    delay(100); bank--;
+  } 
+
+  if (BankUpState == LOW && BankDownState == LOW) //переделать, условие вызывает нестабильность
+  {
+    BankUpState = digitalRead(BankUpPin);
+    BankDownState = digitalRead(BankDimPin);
+    check = 0; //приведение системы в 0
+    
+    //вывод
+ doit(i);
     
   } 
 }
