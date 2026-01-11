@@ -1,14 +1,17 @@
-const int BankUpPin = 2;  // + баттон
-const int BankDimPin = 12;    // - баттон
+const int BankUpPin = 10;  // + баттон
+const int BankDimPin = 2;    // - баттон
 int check = 0; //защита от лишнего нажатия
 int BankUpState = 0;  // +1
 int BankDownState = 0; //-1
 int bank = 0;
 
-int ButtonAPin = 10;
+int ButtonAPin = 8;
 int ButtonBPin = 11;
+int ButtonCPin = 12;
 int ButtonAState = 0;
 int ButtonBState = 0;
+int ButtonCState = 0;
+int check1 = 0;
 
 
 //запись в 76
@@ -24,6 +27,7 @@ void setup() {
 
   pinMode(ButtonAPin, INPUT);
   pinMode(ButtonBPin, INPUT);
+  pinMode(ButtonCPin, INPUT);
 
   pinMode(latchPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
@@ -42,8 +46,10 @@ void doit(int a)
 void loop() {
   BankUpState = digitalRead(BankUpPin);
   BankDownState = digitalRead(BankDimPin);
-  ButtonAState = digitalRead(ButtonAState);
-  ButtonBState = digitalRead(ButtonBState);
+  ButtonAState = digitalRead(ButtonAPin);
+  ButtonBState = digitalRead(ButtonBPin);
+  ButtonCState = digitalRead(ButtonCPin);
+  
 
    if (BankUpState == HIGH && check == 0) {
     check++;
@@ -59,8 +65,8 @@ void loop() {
     delay(100); bank--;
   } 
 
-  if (ButtonAState == HIGH && check == 0) {
-    check++; 
+  if (ButtonAState == HIGH && check1 == 0) {
+    check1++; 
     switch (bank)
     {
       case 0: i = 0; break;
@@ -70,23 +76,53 @@ void loop() {
       default:  break;
     }
     Serial.println("A");  
-    delay(1000); 
+    delay(100); 
+  }
+    if (ButtonBState == HIGH && check1 == 0) {
+    check1++; 
+    switch (bank)
+    {
+      case 0: i = 0; break;
+      case 1: i = 1; break;
+      case 2: i = 2; break;
+      case 3: i = 3; break;
+      default:  break;
+    }
+    Serial.println("A");  
+    delay(100); 
+  }
+    if (ButtonCState == HIGH && check1 == 0) {
+    check1++; 
+    switch (bank)
+    {
+      case 0: i = 0; break;
+      case 1: i = 1; break;
+      case 2: i = 2; break;
+      case 3: i = 3; break;
+      default:  break;
+    }
+    Serial.println("A");  
+    delay(100); 
   }
   
 
-
+//Serial.print(ButtonAState); delay(500);
 //doit(i);
-  if (BankUpState == LOW && BankDownState == LOW && ButtonAState == LOW) //переделать, условие вызывает нестабильность
+  if (BankUpState == LOW && BankDownState == LOW ) //переделать, условие вызывает нестабильность 
   {
-    BankUpState = digitalRead(BankUpPin);
-    BankDownState = digitalRead(BankDimPin);
-    ButtonAState = digitalRead(ButtonAPin);
     check = 0; //приведение системы в 0
+    
+    //вывод
+ //doit(i);
+    
+  } 
+    if (ButtonAState == LOW) //переделать, условие вызывает нестабильность && ButtonAState == LOW
+  {
+    check1 = 0; //приведение системы в 0
     
     //вывод
  doit(i);
     
   } 
-  else
-  {Serial.print(BankDownState); Serial.print(BankUpState); Serial.println(ButtonAState);}
+ // else {Serial.print(BankDownState); Serial.print(BankUpState); Serial.println(ButtonAState);}
 }
