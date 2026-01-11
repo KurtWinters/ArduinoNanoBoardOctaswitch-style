@@ -1,5 +1,5 @@
-const int buttonPin = 5;  // + баттон
-const int downbuttonPin = 7;    // - баттон
+const int buttonPin = 8;  // + баттон
+const int downbuttonPin = 9;    // - баттон
 int i = 0; //запись в 76
 int check = 0; //защита от лишнего нажатия
 int buttonState = 0;  // +1
