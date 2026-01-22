@@ -21,10 +21,16 @@ int clockPin = 7;
 int dataPin = 9;
 int latchPin = 8;
 int i = 255; //записываемое число
+int value[3][4]; int button_value = 0;
 
 int ButtonWritePin = 10;
 int ButtonWriteState = 0;
 int check2 = 0;
+
+//меню
+int mas[8] {};
+int mCheck = 0;
+int result = 0;
 
 LiquidCrystal_I2C lcd(0x27,20,4);
 
@@ -53,20 +59,49 @@ void setup() {
   lcd.setCursor(3,2);
   lcd.print("and program");
   delay(1000);
+  value [0][1] = 29; value [0][2] = 17;value [0][3] = 19;
+  value [1][1] = 179; value [1][2] = 49;value [1][3] = 175;
 }
 
-void doit(int a)
+int stepen (int a, int b) //костыль для возведения в степень
 {
-    digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin,LSBFIRST, i);
-    digitalWrite(latchPin, HIGH);
+  //Serial.print("ses1");
+int c=a;
+if (a == 0 or b == 0) {a=1;}
+else {
+for (b>0;b=b-1;)
+{
+a=c*a;
+}
+}
+return a;
+}
+
+int bintodec (int jopa[8])
+{
+  int dec = 0;
+for (int a = 0; a < 8; a++) {  
+
+    dec = jopa[a]*stepen(2,a)+dec;
+    delay(100);
+}
+return dec;
+}
+
+void doit(int massive[3][4])
+{
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin,LSBFIRST, value [bank][button_value]);
+  digitalWrite(latchPin, HIGH);
   lcd.clear();              
   lcd.setCursor(3,0);
   lcd.print("bank #"); lcd.print(bank);
   lcd.setCursor(2,1);
   lcd.print("value "); lcd.print(i);
-  
 }
+  
+
+
 
 void loop() {
 
@@ -77,7 +112,6 @@ void loop() {
   ButtonBState = digitalRead(ButtonBPin);
   ButtonCState = digitalRead(ButtonCPin);
   ButtonWriteState = digitalRead(ButtonWritePin);
- /* */
 
    if (BankUpState == HIGH && check == 0) {
     check++;
@@ -104,14 +138,7 @@ void loop() {
 
   if (ButtonAState == HIGH && check1 == 0) {
     check1++; 
-    switch (bank)
-    {
-      case 0: i = 29; break;
-      case 1: i = 179; break;
-      case 2: i = 1; break;
-      case 3: i = 1; break;
-      default:  break;
-    }
+    button_value = 1;
         lcd.clear(); 
         lcd.setCursor(2,1);             
      lcd.print("A");
@@ -120,14 +147,7 @@ void loop() {
   }
     if (ButtonBState == HIGH && check1 == 0) {
     check1++; 
-    switch (bank)
-    {
-      case 0: i = 17; break;
-      case 1: i = 49; break;
-      case 2: i = 1; break;
-      case 3: i = 1; break;
-      default:  break;
-    }
+    button_value = 2;
     Serial.println("B");  
     lcd.clear(); 
     lcd.setCursor(2,1);             
@@ -136,49 +156,48 @@ void loop() {
   }
     if (ButtonCState == HIGH && check1 == 0) {
     check1++; 
-    switch (bank)
-    {
-      case 0: i = 19; break;
-      case 1: i = 175; break;
-      case 2: i = 1; break;
-      case 3: i = 1; break;
-      default:  break;
-    }
+    button_value = 3;
     Serial.println("C");
     lcd.clear(); 
     lcd.setCursor(2,1);             
     lcd.print("C");  
     delay(100); 
   }
-  
-
-//Serial.print(ButtonAState); delay(500);
-//doit(i);
   if (BankUpState == LOW && BankDownState == LOW && check == 1) //переделать, условие вызывает нестабильность 
   {
     check = 0; //приведение системы в 0
   } 
     if (ButtonAState == LOW && ButtonBState == LOW && ButtonCState == LOW && check1 == 1) //переделать, условие вызывает нестабильность && ButtonAState == LOW
   {
-    doit(i);
+
+    doit(value [bank][button_value]);
     check1 = 0; //приведение системы в 0
   } 
   if (ButtonWriteState == HIGH && check2 == 0)
   {
     Serial.print("========"); Serial.print("Setup mode"); Serial.println("========"); check2 = 1;
 
-        lcd.clear(); 
+    lcd.clear(); 
     lcd.setCursor(1,1);             
     lcd.print("==================");
     lcd.setCursor(4,2); 
     lcd.print("Setup mode");
     lcd.setCursor(1,3); 
     lcd.print("==================");
+
+ 
+
+
+
+
+
+
+
   }
   if (ButtonWriteState == LOW && check2 == 1)
   {
     Serial.print("=================="); Serial.print("Setup done"); Serial.println("=================="); check2 = 0;
-            lcd.clear(); 
+    lcd.clear(); 
     lcd.setCursor(1,1);             
     lcd.print("==================");
     lcd.setCursor(4,2); 
