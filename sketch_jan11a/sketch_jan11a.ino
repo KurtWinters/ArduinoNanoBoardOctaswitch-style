@@ -1,6 +1,7 @@
 #include<EEPROM.h>
 #include <LiquidCrystal_I2C.h>
 
+///ssssssssssssssssssss
 const int BankUpPin = 2;  // + баттон
 const int BankDimPin = 3;    // - баттон
 int check = 0; //защита от лишнего нажатия
