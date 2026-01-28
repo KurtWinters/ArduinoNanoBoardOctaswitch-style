@@ -1,4 +1,4 @@
-#include<EEPROM.h>
+#include <EEPROM.h>
 #include <LiquidCrystal_I2C.h>
 
 //управление банками
@@ -17,13 +17,14 @@ int ButtonAState = 0;
 int ButtonBState = 0;
 int ButtonCState = 0;
 int check1 = 0;
+int value[3][4]; 
+int button_value = 0;
 
 //запись в 76
 int clockPin = 7;
 int dataPin = 9;
 int latchPin = 8;
-int i = 255; //записываемое число
-int value[3][4]; int button_value = 0;
+
 
 //нажать для записи в память значения
 int ButtonWritePin = 10;
@@ -31,9 +32,15 @@ int ButtonWriteState = 0;
 int check2 = 0;
 
 //меню
-int mas[8] {};
+int bin[8] {};
+int out = 0;
 int mCheck = 0;
-int result = 0;
+int tmp_flag = 0;
+int OutPlusState = 0;
+int OutMinState = 0;
+int OnState = 0;
+int OffState = 0;
+    
 
 LiquidCrystal_I2C lcd(0x27,20,4);
 
@@ -62,8 +69,8 @@ void setup() {
   lcd.setCursor(3,2);
   lcd.print("and program");
   delay(1000);
-  value [0][1] = 29; value [0][2] = 17;value [0][3] = 19;
-  value [1][1] = 179; value [1][2] = 49;value [1][3] = 175;
+  //value [0][1] = 29; value [0][2] = 17;value [0][3] = 19;
+  //value [1][1] = 179; value [1][2] = 49;value [1][3] = 175;
 }
 
 int stepen (int a, int b) //костыль для возведения в степень
@@ -91,7 +98,7 @@ for (int a = 0; a < 8; a++) {
 return dec;
 }
 
-void doit(int massive[3][4])
+void doit()
 {
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin,LSBFIRST, value [button_value][bank]);
@@ -100,7 +107,7 @@ void doit(int massive[3][4])
   lcd.setCursor(3,0);
   lcd.print("bank #"); lcd.print(bank);
   lcd.setCursor(2,1);
-  lcd.print("value "); lcd.print(i);
+  lcd.print("value ");  lcd.print(value[button_value][bank]);
 }
 //проверить 
 //array[button_value][bank]
@@ -113,26 +120,7 @@ int adress_count(int count_buts, int count_banks)
     return adressToReturn;
   }
 
-void data_pullup ()
-{
-  
-  for (int b = 0; b < button_value; b++ )
-  {
 
-      for (int a = 0; a < bank; a++)
-      {
-      EEPROM.get(adress_count(b, a), &value[b][a]);
-      }
-
-
-  }
-
-}
-void data_update(int data_data)
-{
-EEPROM.update(adress_count(button_value, bank), data_data);
-
-}
 
 /*
 EEPROM.write(адрес, данные) - пишет один байт данных по адресу
@@ -145,6 +133,9 @@ EEPROM[] - библиотека позволяет работать с EEPROM п
 
 
 void loop() {
+  ButtonWriteState = digitalRead(ButtonWritePin);
+  if (ButtonWriteState == LOW)
+  {
 
    
   BankUpState = digitalRead(BankUpPin);
@@ -152,7 +143,7 @@ void loop() {
   ButtonAState = digitalRead(ButtonAPin);
   ButtonBState = digitalRead(ButtonBPin);
   ButtonCState = digitalRead(ButtonCPin);
-  ButtonWriteState = digitalRead(ButtonWritePin);
+  
 
    if (BankUpState == HIGH && check == 0) {
     check++;
@@ -163,23 +154,23 @@ void loop() {
      lcd.print("bank ");lcd.print(bank);
     Serial.println("bank - "); Serial.println(bank); 
     lcd.setCursor(2,1);
-  lcd.print("value "); lcd.print(i);
+  lcd.print("value "); lcd.print(value[button_value][bank]);
 
   } 
   if (BankDownState == HIGH && check == 0) {
     check++; 
-    if (bank<0){bank=3;}
+    if (bank<0){bank=3;} 
     lcd.clear();  
     lcd.setCursor(3,0);            
     lcd.print("bank "); lcd.print(bank); Serial.println(bank);
     delay(100); bank--;
     lcd.setCursor(2,1);
-  lcd.print("value "); lcd.print(i);
+  lcd.print("value "); lcd.print(value[button_value][bank]);
   } 
 
   if (ButtonAState == HIGH && check1 == 0) {
     check1++; 
-    button_value = 1;
+    button_value = 0;
         lcd.clear(); 
         lcd.setCursor(2,1);             
      lcd.print("A");
@@ -188,7 +179,7 @@ void loop() {
   }
     if (ButtonBState == HIGH && check1 == 0) {
     check1++; 
-    button_value = 2;
+    button_value = 1;
     Serial.println("B");  
     lcd.clear(); 
     lcd.setCursor(2,1);             
@@ -197,7 +188,7 @@ void loop() {
   }
     if (ButtonCState == HIGH && check1 == 0) {
     check1++; 
-    button_value = 3;
+    button_value = 2;
     Serial.println("C");
     lcd.clear(); 
     lcd.setCursor(2,1);             
@@ -211,28 +202,63 @@ void loop() {
     if (ButtonAState == LOW && ButtonBState == LOW && ButtonCState == LOW && check1 == 1) //переделать, условие вызывает нестабильность && ButtonAState == LOW
   {
 
-    doit(value [bank][button_value]);
+    doit();
     check1 = 0; //приведение системы в 0
   } 
+  }
+  
   if (ButtonWriteState == HIGH && check2 == 0)
   {
-    Serial.print("========"); Serial.print("Setup mode"); Serial.println("========"); check2 = 1;
-
+    if (tmp_flag == 0) 
+    {     
+      tmp_flag = 1;  
     lcd.clear(); 
     lcd.setCursor(1,1);             
     lcd.print("==================");
     lcd.setCursor(4,2); 
     lcd.print("Setup mode");
     lcd.setCursor(1,3); 
+    lcd.print("=================="); delay(300);
+
+    lcd.clear(); 
+    lcd.setCursor(1,1);             
     lcd.print("==================");
+    lcd.setCursor(2,2); 
+    lcd.print("bank "); lcd.print(bank); lcd.print(" button "); lcd.print(button_value);
+    lcd.setCursor(1,3); 
+    lcd.print("=================="); delay(300);
+    }
 
- 
+    OutPlusState = digitalRead(BankUpPin);
+    OutMinState = digitalRead(BankDimPin);
+    OnState = digitalRead(ButtonAPin);
+    OffState = digitalRead(ButtonBPin);
+    
+    lcd.print("==================");
+    lcd.setCursor(2,2); 
+    lcd.print("output "); lcd.print(bin[out]); lcd.print(" status "); lcd.print(bin[out]);
+    lcd.setCursor(1,3); 
+    lcd.print("=================="); delay(500);
 
+    if (OutPlusState == HIGH && mCheck == 0)
+    {
+      mCheck++; if (out>8){out=-1;} out++;
+    }
+   if (OutMinState == HIGH && mCheck == 0)
+    {
+      mCheck++; if (out<0){bank=8;} out--;
+    }
+   if (OnState == HIGH && mCheck == 0)
+    {
+      mCheck++; bin[out]=1;
+    }
+   if (OffState == HIGH && mCheck == 0)
+    {
+      mCheck++; bin[out]=0;
+    }
 
-
-
-
-
+if(BankUpState == LOW && BankDownState == LOW && ButtonAState == LOW && ButtonBState == LOW && mCheck == 1)
+{mCheck = 1;}
 
   }
   if (ButtonWriteState == LOW && check2 == 1)
@@ -246,7 +272,10 @@ void loop() {
     lcd.setCursor(1,3); 
     lcd.print("==================");
     delay(1000);
-    doit(i);
+    tmp_flag = 0;
+    value[button_value][bank] = bintodec(bin[out]);
+    EEPROM.update(adress_count(button_value, bank), value[button_value][bank]);
+    doit();
   }
 
  // else {Serial.print(BankDownState); Serial.print(BankUpState); Serial.println(ButtonAState);}
