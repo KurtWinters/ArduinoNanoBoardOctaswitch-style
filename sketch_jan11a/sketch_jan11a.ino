@@ -134,7 +134,7 @@ EEPROM[] - библиотека позволяет работать с EEPROM п
 
 void loop() {
   ButtonWriteState = digitalRead(ButtonWritePin);
-  if (ButtonWriteState == LOW)
+  if (ButtonWriteState == LOW && check2 == 0)
   {
 
    
